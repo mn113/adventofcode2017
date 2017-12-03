@@ -1,24 +1,29 @@
 neighbs = [[0,1], [1,0], [0,-1], [-1,0], [1,1], [-1,-1], [1,-1], [-1,1]]
 compass = [[0,1], [1,0], [0,-1], [-1,0]]	# S,E,N,W
 i = 0	# compass index
-grid = []
 limit = 11	# max grid size (odd) - increase if IndexError before solution
 
-#Class Grid
+class Grid
+	def initialize(data)
+		@data = data
+	end
+
+	def getVal(coords)
+		self.data[coords[0]][coords[1]]
+	end
+
+	def setVal(coords, val)
+		self.data[coords[0]][coords[1]] = val
+	end
+
+	attr_accessor :data		# makes data attribute readable/writable
+end
 
 # zero-fill grid, 1 at centre:
-grid = Array.new(limit) { Array.new(limit) {0} }
+grid = Grid.new(Array.new(limit) { Array.new(limit) {0} })
 curPos = [(limit-1)/2, (limit-1)/2]	# centre
-grid[curPos[0]][curPos[1]] = 1
-p grid
+grid.setVal(curPos, 1)
 
-#grid helpers
-def getVal(grid, coords)
-	grid[coords[0]][coords[1]]
-end
-def setVal(grid, coords, val)
-	grid[coords[0]][coords[1]] = val
-end
 # vector addition
 def add(ptA, ptB)
 	[ptA[0]+ptB[0], ptA[1]+ptB[1]]
@@ -29,21 +34,19 @@ while true do
 	# turn CCW every go:
 	i = (i+1) % 4
 	# turn CW if blocked:
-	if getVal(grid, add(curPos, compass[i])) > 0 then
+	if grid.getVal(add(curPos, compass[i])) > 0 then
 		i = (i-1) % 4
-		nextPos = add(curPos, compass[i])
 	end
-
-	p [curPos, "=", getVal(grid, curPos)]	# val should always be 0
+	curPos = add(curPos, compass[i])
 
 	# sum the 8 neighbours:
 	sum_of_8 = 0
 	neighbs.each do |nb|
-		sum_of_8 += getVal(grid, add(curPos, nb))
+		sum_of_8 += grid.getVal(add(curPos, nb))
 	end
 	p sum_of_8
 
 	# update grid:
-	setVal(grid, curPos, sum_of_8)
+	grid.setVal(curPos, sum_of_8)
 	break if sum_of_8 > 277678
 end
