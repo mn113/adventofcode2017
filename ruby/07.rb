@@ -14,13 +14,15 @@ gyxo (61)
 cntj (57)
 """
 
-input = File.open("07input.txt", "r")
+input = File.open("input.txt", "r")
 
 @tops = []
 @meds = []
 @bots = []
 @weights = {}
 @links = {}
+@full_weights = {}
+@depths = Hash.new(0)
 
 input.each_line do |line|
 	# Match the parts using regex:
@@ -33,29 +35,34 @@ input.each_line do |line|
 	# Use {term => weight} hash as key:
 	@links[lhs] = rhs.split(', ') if rhs
 end
-p 'weights', @weights
-p 'links', @links
+p 'weights', @weights.size
+p 'links', @links.size
 
 # Isolate the categories:
 @bots.delete_if { |t| @meds.include?(t) }
 @meds.delete_if { |t| @bots.include?(t) || @tops.include?(t) }
 # Part 1:
-p 'bottom', @bots
-p 'meds', @meds
-#p tops
+p 'bottom', @bots.size, @bots
+p 'meds', @meds.size
+p 'tops', @tops.size
 
 # Part 2:
 # Recursive function to sum full chains of links:
-def fully_weigh_node(key)
-	return @weights[key] if @tops.include?(key)
-
-	@weights[key] + @links[key].map{ |n| fully_weigh_node(n) }.reduce(:+)
+def fully_weigh_node(key, depth)
+	@depths[key] = depth
+	if @tops.include?(key)
+		@full_weights[key] = @weights[key]	# end of chain
+	else
+		@full_weights[key] = @weights[key] + @links[key].map{ |n| fully_weigh_node(n, depth+1) }.reduce(:+)
+	end
 end
 
-#p fully_weigh_node('fwft')
+fully_weigh_node(@bots[0], 0)
+#p @full_weights
 
-@links.each_key do |node|
-	# Parent weight + children weight
-	# Must be equal for all rhs sets
-	p "#{node} -> #{fully_weigh_node(node)}"
-end
+# Hard-code finding the odd one out:
+p @links[@bots[0]].map { |key| {key => @full_weights[key]} }
+p @links['jjjks'].map { |key| {key => @full_weights[key]} }
+p @links['gtervu'].map { |key| {key => @full_weights[key]} }
+p @links['ycbgx'].map { |key| {key => @full_weights[key]} }	# 243, 243, 243
+p @weights['ycbgx']
