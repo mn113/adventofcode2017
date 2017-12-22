@@ -44,10 +44,10 @@ def flipV(pat):
 
 def breakup(pat):
     blocks = []
-    if len(pat) % 3 == 0:
-        b = blocksize = 3
+    if len(pat) % 2 == 0:
+        b = blocksize = 2
     else:
-        b = 2
+        b = 3
     q = int(len(pat) / b)
     for i in range(q):
         #print('i',i)
@@ -60,27 +60,38 @@ def breakup(pat):
     return blocks
 
 
-def stitch(blocks):    #4
-    print(blocks)
+# Stitching example:
+#
+# [1,2,3]   [4,5,6]
+# [7,8,9]   [A,B,C]
+# [D,E,F]   [G,H,I]
+#
+# [J,K,L]   [M,N,O]
+# [P,Q,R]   [S,T,U]
+# [V,W,X]   [Y,Z,0]
+#
+
+def stitch(blocks):    # 4 blocks
+    #print(blocks)
     blocks.reverse()
     b = len(blocks)    #4
-    bs = len(blocks[0])
     q = int(sqrt(b))    #2
-    ns = q*bs
-    pat = [[None] * ns for i in range(ns)]
-    print(pat)
-    for i in range(q):
-        i *= q        #0,2
+    bs = len(blocks[0]) #3
+    ns = q*bs           #6
+    pat = [[None] * ns for i in range(ns)]  # 36 Nones
+    #print(pat)
+    for i in range(q):  #0,1
+        i *= bs         #0,3
         #print('i',i)
-        for j in range(q):
-            j *= q        #0,2
+        for j in range(q):  #0,1
+            j *= bs         #0,3
             #print('j',j)
             #print('block:')
             d = blocks.pop()    # ok
-            print('d',len(d),d) # 3
+            #print('d',len(d),d) # 3
             for m in range(len(d)): #0,1,2
-                for n in range(len(d)):
-                    print([i,j,m,n, d[m][n], i+m, j+n])
+                for n in range(len(d)): #0,1,2
+                    #print([i,j,m,n, d[m][n], i+m, j+n]) #0-5
                     pat[i+m][j+n] = d[m][n]
             #print('/block')
             #print('pat:')
@@ -95,25 +106,25 @@ def find_rule(b):
     r2 = rotate(r1)
     r3 = rotate(r2)
 
-    v0 = flipV(r0)
-    v1 = flipV(r1)
-    v2 = flipV(r2)
-    v3 = flipV(r3)
+    f0 = flipV(r0)
+    f1 = flipV(r1)
+    f2 = flipV(r2)
+    f3 = flipV(r3)
 
     h0 = flipH(r0)
     h1 = flipH(r1)
     h2 = flipH(r2)
     h3 = flipH(r3)
 
-    for v in [r0,r1,r2,r3, v0,v1,v2,v3, h0,h1,h2,h3]:
+    for v in [r0,r1,r2,r3, f0,f1,f2,f3]:
         v = compress(v)
         #print(v)
         if v in rules.keys():
-            print('found', v, '=>', rules[v])
+            #print('found', v, '=>', rules[v])
             return rules[v]
-
-    print("Not found", compress(b))
-    return False
+    else:
+        raise KeyError('Rule not found.', compress(b))
+        return False
 
 def process(image):
     if len(image) > 3:
@@ -124,23 +135,23 @@ def process(image):
     print(len(blocks), 'block(s)')
     # Find a matching rule for each piece:
     blocks = [expand(find_rule(b)) for b in blocks]
-    print('resulting', blocks)
+    #print('resulting', blocks)
 
     if len(blocks) > 1:
         return stitch(blocks)
     else:
         return blocks[0]
 
-#print(stitch(breakup(expand("#..#/..../..../#..#"))))
+#print(stitch(breakup(expand("#..#/..../..../#..#"))))   # ok
 
 # Start work:
 image = ".#./..#/###"
 image = expand(image)
 
-for z in range(5):
+for z in range(18):
     image = process(image)
-    print('z', z, image)
+    print('z', z, compress(image))
 
 image = compress(image)
 print(image)
-print(image.count("#")) # pythonic?
+print(image.count("#"))
